@@ -1,0 +1,11 @@
+# Build output folders
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+
+# Local secrets
+appsettings.Development.json
