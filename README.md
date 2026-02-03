@@ -7,11 +7,13 @@ ASP.NET Core Web API for managing a collection of books.
 - Database operations via stored procedures
 - Pagination and sorting support for large datasets
 - Export book data to Excel and PDF formats
+- Validation using FluentValidation
 
 ## Tech Stack
 - ASP.NET Core
 - C#
 - SQL Server
+- FluentValidation
 
 ## Getting Started
 1. Clone the repository:
