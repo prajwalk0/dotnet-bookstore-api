@@ -1,4 +1,8 @@
 using FirstAPI.Data;
+using FirstAPI.Services;
+using FirstAPI.Validation;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +14,10 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 //builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddScoped<IBookService, BookService>();
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<BookValidator>();
 
 builder.Services.AddDbContext<FirstAPIContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
