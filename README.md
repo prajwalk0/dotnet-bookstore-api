@@ -1,3 +1,4 @@
+<img width="1322" height="595" alt="books_swagger" src="https://github.com/user-attachments/assets/7e1a5051-bfce-4530-afad-8a475ae26903" />
 # dotnet-bookstore-api
 
 ASP.NET Core Web API for managing a collection of books.
@@ -19,3 +20,4 @@ ASP.NET Core Web API for managing a collection of books.
 1. Clone the repository:
    ```bash
    git clone https://github.com/prajwalk0/dotnet-bookstore-api.git
+<img width="1322" height="595" alt="books_swagger" src="https://github.com/user-attachments/assets/93c01c1a-f951-4dd1-9fc5-d8706a6c484e" />
