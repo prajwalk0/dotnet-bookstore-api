@@ -1,4 +1,4 @@
-<img width="1322" height="595" alt="books_swagger" src="https://github.com/user-attachments/assets/7e1a5051-bfce-4530-afad-8a475ae26903" />
+
 # dotnet-bookstore-api
 
 ASP.NET Core Web API for managing a collection of books.
