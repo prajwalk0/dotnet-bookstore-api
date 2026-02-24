@@ -13,6 +13,8 @@ using QuestPDF.Helpers;
 
 using System.ComponentModel;
 using System.Data;
+using FirstAPI.Services;
+using FirstAPI.DTO;
 
 namespace FirstAPI.Controllers
 {
@@ -66,21 +68,21 @@ namespace FirstAPI.Controllers
 
 
         // we are injecting FirstAPIContext into our controller through its constructor
-        private readonly FirstAPIContext _context; 
-        public BooksController(FirstAPIContext context)
+        private readonly IBookService _service; 
+        public BooksController(IBookService service)
         {
-            _context = context;
+            _service = service;  
         }
 
 
 
-        /*[HttpGet]
-        public async Task<ActionResult<List<Book>>> GetBooks()
-        {
-            return Ok(await _context.Books.ToListAsync());
-        }*/
-
         [HttpGet]
+        public async Task<ActionResult<List<BookDto>>> GetBooks()
+        {
+            return Ok(await _service.GetAllBooksAsync());
+        }
+
+        /*[HttpGet]
         [Route("getall")]
         public async Task<ActionResult<List<Book>>> GetAllBooksSP([FromQuery] QueryObject query)   // -----> here show this by calling database stored procedure
         {
@@ -116,11 +118,11 @@ namespace FirstAPI.Controllers
 
             return Ok(pagedResponse);
 
-        }
+        }*/
 
 
 
-        [HttpGet("ExportExcel")]
+        /*[HttpGet("ExportExcel")]
         public async Task<ActionResult<List <Book>>> ExportBooksToExcel()
         {
             // Implementation for exporting books to Excel
@@ -164,9 +166,9 @@ namespace FirstAPI.Controllers
                     );
             }
             return dt;
-        }
+        }*/
 
-        [HttpGet("ExportToPDF")]
+        /*[HttpGet("ExportToPDF")]
         public async Task<ActionResult<List<Book>>> ExportBooksToPDF()
         {
             var books = await _context.Books.ToListAsync();
@@ -267,7 +269,7 @@ namespace FirstAPI.Controllers
                 .DefaultTextStyle(x => x
                     .FontSize(14)
                     .FontColor(Colors.Grey.Darken2));
-        }
+        }*/
 
 
 
@@ -289,41 +291,37 @@ namespace FirstAPI.Controllers
         }*/
 
         // this http get method again for when user is requesting one specific resources
-        /*[HttpGet("{id}")]
-        public async Task<ActionResult<Book>> GetBookById(int id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<BookDto>> GetBookById(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _service.GetBookByIdAsync(id);
             if (book == null)
             {
-                return NotFound(); //404 not found
+                return NotFound("Book with the given id was not found"); //404 not found
             }
             return Ok(book); //200 ok
-        }*/
+        }
 
-        [HttpGet("SP{id}")]
+        /*[HttpGet("SP{id}")]
         public async Task<ActionResult<Book>> GetBookById(int id)
         {
-            var book = await _context.Books.FromSql($"Sp_GetBooksById {id}").ToListAsync();
+            var book = await _service.Books.FromSql($"Sp_GetBooksById {id}").ToListAsync();
             if (book == null || book.Count ==0)
             {
                 return NotFound(); //404 not found
             }
             return Ok(book); //200 ok
-        }
-
-        /*[HttpPost]
-        public async Task<ActionResult<Book>> AddBook(Book newBook)
-        {
-            if (newBook == null)
-                return BadRequest(); //400 bad request
-
-            _context.Books.Add(newBook);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetBookById), new { newBook.Id}, newBook); // CreatedAtAction returns 201 created
         }*/
 
-        [HttpPost("insert")]
+        [HttpPost]
+        public async Task<ActionResult<BookDto>> AddBook(CreateBookDto newBook)
+        {
+            var createdBook = await _service.AddBookAsync(newBook);
+
+            return CreatedAtAction(nameof(GetBookById), new { createdBook.Id}, createdBook); // CreatedAtAction returns 201 created
+        }
+
+        /*[HttpPost("insert")]
         public async Task<ActionResult<Book>> AddBook(Book newBook)
         {
             if (newBook == null)
@@ -333,41 +331,20 @@ namespace FirstAPI.Controllers
             await _context.Database.ExecuteSqlInterpolatedAsync($"exec Sp_InsertBooks @Title={newBook.Title}, @Author = {newBook.Author}, @YearPublished = {newBook.YearPublished}");
 
             return CreatedAtAction(nameof(GetBookById), new { newBook.Id }, newBook); //201 created
+        }*/
+
+        [HttpPut("{id}")]    // when an api call is made to update a resource, we need to provide the id of the resource we want to update 
+        public async Task<IActionResult> UpdateBook(int id, UpdateBookDto updatedBook)
+        {
+            var book = await _service.UpdateBookAsync(id, updatedBook);
+            if (!book)
+                return NotFound("Book with the given id was not found");
+            return Ok(book);
+            
         }
 
-        /*[HttpPut("{id}")]    // when an api call is made to update a resource, we need to provide the id of the resource we want to update 
-        public async Task<IActionResult> UpdateBook(int id, Book updatedBook)
-        {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
-                return NotFound(); //404 not found
 
-            book.Id = updatedBook.Id;
-            book.Title = updatedBook.Title;
-            book.Author = updatedBook.Author;
-            book.YearPublished = updatedBook.YearPublished;
-
-            await _context.SaveChangesAsync();
-            return NoContent(); //204 no content
-        }*/
-
-        /*[HttpPut("{id}")]    // when an api call is made to update a resource, we need to provide the id of the resource we want to update 
-        public async Task<IActionResult> UpdateBook(int id, Book updatedBook)
-        {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
-                return NotFound(); //404 not found
-
-            book.Id = updatedBook.Id;
-            book.Title = updatedBook.Title;
-            book.Author = updatedBook.Author;
-            book.YearPublished = updatedBook.YearPublished;
-
-            await _context.SaveChangesAsync();
-            return NoContent(); //204 no content
-        }*/
-
-        [HttpPut("SP{id}")]
+        /*[HttpPut("SP{id}")]
         public async Task<IActionResult> UpdateBook(int id, Book updatedBook)
         {
             var book = await _context.Books.FindAsync(id);
@@ -375,6 +352,15 @@ namespace FirstAPI.Controllers
                 return NotFound(); //404 not found
 
             await _context.Database.ExecuteSqlInterpolatedAsync($"exec Sp_UpdateBooks @Id={id},@Title={updatedBook.Title}, @Author={updatedBook.Author}, @YearPublished={updatedBook.YearPublished}");
+            return NoContent(); //204 no content
+        }*/
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            var book = await _service.DeleteBookAsync(id);
+            if (!book)
+                return NotFound("Book with the given is was not found"); //404 not found
             return NoContent(); //204 no content
         }
 
@@ -387,21 +373,8 @@ namespace FirstAPI.Controllers
 
             _context.Books.Remove(book);
 
-            await _context.SaveChangesAsync();
-            return NoContent(); //204 no content
-        }*/
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBook(int id)
-        {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
-                return NotFound(); //404 not found
-
-            _context.Books.Remove(book);
-
             await _context.Database.ExecuteSqlInterpolatedAsync($"exec Sp_DeleteBook @Id={id}");
             return NoContent(); //204 no content
-        }
+        }*/
     }
 }
