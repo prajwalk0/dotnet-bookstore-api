@@ -68,10 +68,12 @@ namespace FirstAPI.Controllers
 
 
         // we are injecting FirstAPIContext into our controller through its constructor
-        private readonly IBookService _service; 
-        public BooksController(IBookService service)
+        private readonly IBookService _service;
+        private readonly IExportService _exportService;
+        public BooksController(IBookService service, IExportService exportService)
         {
-            _service = service;  
+            _service = service;
+            _exportService = exportService;
         }
 
 
@@ -119,54 +121,21 @@ namespace FirstAPI.Controllers
             return Ok(pagedResponse);
 
         }*/
+        
 
 
-
-        /*[HttpGet("ExportExcel")]
-        public async Task<ActionResult<List <Book>>> ExportBooksToExcel()
+        [HttpGet("ExportExcel")]
+        public async Task<ActionResult> ExportBooksToExcel()
         {
             // Implementation for exporting books to Excel
             // This is a placeholder for the actual implementation
-            var books = await _context.Books.ToListAsync();
-            var _bookdata = ConvertToDataTable(books);
-            using(XLWorkbook wb = new XLWorkbook())
-            {
-                wb.Worksheets.Add(_bookdata);
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    wb.AddWorksheet(_bookdata, "Book Records");
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        wb.SaveAs(ms);
-                        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "BookRecords.xlsx");
-                    }
-                }
-            }
+            var fileBytes = await _exportService.ExportToExcelAsync();
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "BookRecords.xlsx"
+                );
         }
-
-
-        [NonAction]
-        private DataTable ConvertToDataTable(List<Book> books)
-        {
-            DataTable dt = new DataTable();
-            dt.TableName = "Books";
-            // Define columns
-            dt.Columns.Add("Id", typeof(int));
-            dt.Columns.Add("Title", typeof(string));
-            dt.Columns.Add("Author", typeof(string));
-            dt.Columns.Add("YearPublished", typeof(int));
-            // Populate rows
-            foreach (var book in books)
-            {
-                dt.Rows.Add(
-                    book.Id,
-                    book.Title,
-                    book.Author,
-                    book.YearPublished
-                    );
-            }
-            return dt;
-        }*/
 
         /*[HttpGet("ExportToPDF")]
         public async Task<ActionResult<List<Book>>> ExportBooksToPDF()

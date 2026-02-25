@@ -15,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 //builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<BookValidator>();
