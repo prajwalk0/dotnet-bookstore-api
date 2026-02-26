@@ -8,10 +8,10 @@ ASP.NET Core Web API for managing a collection of books.
 - **Service layer added** to encapsulate business logic and keep controllers thin
 - **DTOs (Data Transfer Objects)** to separate API layer from database models
 - Pagination and sorting support for large datasets *(not yet implemented)*
-- Export book data to Excel *(implemented) and PDF formats *(not yet implemented)*
+- Export book data to Excel and PDF formats *( implemented)*
 - Validation using FluentValidation
 
-> ⚠️ Note: Pagination, sorting, and PDF export are placeholders for future implementation.
+> ⚠️ Note: Pagination are sorting placeholders for future implementation.
 
 ## Tech Stack
 - ASP.NET Core
@@ -19,6 +19,8 @@ ASP.NET Core Web API for managing a collection of books.
 - SQL Server
 - Entity Framework Core
 - FluentValidation
+- ClosedXML
+- QuestPDF
 
 ## Getting Started
 1. Clone the repository:
