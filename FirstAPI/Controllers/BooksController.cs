@@ -1,18 +1,6 @@
 ﻿
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Wordprocessing;
-using FirstAPI.Data;
 using FirstAPI.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using QuestPDF.Fluent;
-using QuestPDF.Infrastructure;
-using QuestPDF.Helpers;
-
-using System.ComponentModel;
-using System.Data;
 using FirstAPI.Services;
 using FirstAPI.DTO;
 
@@ -137,108 +125,13 @@ namespace FirstAPI.Controllers
                 );
         }
 
-        /*[HttpGet("ExportToPDF")]
+        [HttpGet("ExportToPDF")]
         public async Task<ActionResult<List<Book>>> ExportBooksToPDF()
         {
-            var books = await _context.Books.ToListAsync();
-
-            QuestPDF.Settings.License = LicenseType.Community;
-            var document = CreateDocument(books);
-            var pdf = document.GeneratePdf();
-
+            var pdf = await _exportService.ExportToPdfAsync();
             return File(pdf, "application/pdf", "Books.pdf");
         }
 
-        [NonAction]
-        private static IDocument CreateDocument(List<Book> books)
-        {
-            return QuestPDF.Fluent.Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    // 🔹 Page setup
-                    page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
-                    page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x
-                        .FontSize(14)
-                        .FontFamily("Times New Roman")
-                        .FontColor(Colors.Grey.Darken2));
-
-                    // 🟦 Main title
-                    page.Header()
-                        .Text("Books Record")
-                        .Bold()
-                        .FontSize(36)
-                        .FontColor(Colors.Blue.Darken2)
-                        .AlignCenter();
-
-                    // 🧾 Table section
-                    page.Content()
-                        .PaddingVertical(1, Unit.Centimetre)
-                        .Table(table =>
-                        {
-                            // Define columns
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.ConstantColumn(70);  // ID
-                                columns.RelativeColumn(3);   // Title
-                                columns.RelativeColumn(3);   // Author
-                                columns.RelativeColumn(2);   // YearPublished
-                            });
-
-                            // 📘 Header Row (Styled)
-                            table.Header(header =>
-                            {
-                                HeaderCellStyle(header.Cell()).Text("ID");
-                                HeaderCellStyle(header.Cell()).Text("Title");
-                                HeaderCellStyle(header.Cell()).Text("Author");
-                                HeaderCellStyle(header.Cell()).Text("Year Published");
-                            });
-
-                            // 📄 Body Rows (Alternating Colors)
-                            for (int i = 0; i < books.Count; i++)
-                            {
-                                var book = books[i];
-                                CellStyleRow(table.Cell(), i).Text(book.Id.ToString());
-                                CellStyleRow(table.Cell(), i).Text(book.Title);
-                                CellStyleRow(table.Cell(), i).Text(book.Author);
-                                CellStyleRow(table.Cell(), i).Text(book.YearPublished.ToString());
-                            }
-                        });
-                });
-            });
-        }
-
-        [NonAction]
-        // 🎨 Header Cell Style — Slightly larger + bold + darker gray text
-        private static QuestPDF.Infrastructure.IContainer HeaderCellStyle(QuestPDF.Infrastructure.IContainer cell)
-        {
-            return cell
-                .BorderBottom(1)
-                .PaddingVertical(8)
-                .PaddingHorizontal(8)
-                .DefaultTextStyle(x => x
-                    .FontColor(Colors.Grey.Darken4)
-                    .FontSize(18)
-                    .SemiBold())
-                .AlignCenter();
-        }
-
-        [NonAction]
-        // 🎨 Body Row Style — Alternating background + smaller font
-        private static QuestPDF.Infrastructure.IContainer CellStyleRow(QuestPDF.Infrastructure.IContainer container, int index)
-        {
-            var backgroundColor = index % 2 == 0 ? Colors.Grey.Lighten4 : Colors.White;
-
-            return container
-                .Background(backgroundColor)
-                .PaddingVertical(8)
-                .PaddingHorizontal(16)
-                .DefaultTextStyle(x => x
-                    .FontSize(14)
-                    .FontColor(Colors.Grey.Darken2));
-        }*/
 
 
 

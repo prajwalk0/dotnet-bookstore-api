@@ -1,6 +1,9 @@
 ﻿using ClosedXML.Excel;
 using FirstAPI.DTO;
 using FirstAPI.Services;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.IO;
 
 public class ExportService : IExportService
@@ -58,8 +61,99 @@ public class ExportService : IExportService
         return stream.ToArray();
     }
 
-    public Task<byte[]> ExportToPdfAsync()
+    public async Task<byte[]> ExportToPdfAsync()
     {
-        throw new NotImplementedException();
+        var books = await _bookService.GetAllBooksAsync();
+
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        var document = CreateDocument(books);
+
+        return document.GeneratePdf();
     }
+    private static IDocument CreateDocument(List<BookDto> books)
+    {
+        return Document.Create(container =>
+        {
+            container.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(2, Unit.Centimetre);
+                page.PageColor(Colors.White);
+                page.DefaultTextStyle(x => x
+                    .FontSize(14)
+                    .FontFamily("Times New Roman")
+                    .FontColor(Colors.Grey.Darken2));
+
+                // Main Title
+                page.Header()
+                    .Text("Books Record")
+                    .Bold()
+                    .FontSize(36)
+                    .FontColor(Colors.Blue.Darken2)
+                    .AlignCenter();
+
+                page.Content()
+                    .PaddingVertical(1, Unit.Centimetre)
+                    .Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.ConstantColumn(70);
+                            columns.RelativeColumn(3);
+                            columns.RelativeColumn(3);
+                            columns.RelativeColumn(2);
+                        });
+
+                        table.Header(header =>
+                        {
+                            HeaderCellStyle(header.Cell()).Text("ID");
+                            HeaderCellStyle(header.Cell()).Text("Title");
+                            HeaderCellStyle(header.Cell()).Text("Author");
+                            HeaderCellStyle(header.Cell()).Text("Year Published");
+                        });
+
+                        for (int i = 0; i < books.Count; i++)
+                        {
+                            var book = books[i];
+
+                            CellStyleRow(table.Cell(), i).Text(book.Id.ToString());
+                            CellStyleRow(table.Cell(), i).Text(book.Title);
+                            CellStyleRow(table.Cell(), i).Text(book.Author);
+                            CellStyleRow(table.Cell(), i).Text(book.YearPublished.ToString());
+                        }
+                    });
+            });
+        });
+    }
+
+    private static IContainer HeaderCellStyle(IContainer cell)
+    {
+        return cell
+            .BorderBottom(1)
+            .PaddingVertical(8)
+            .PaddingHorizontal(8)
+            .DefaultTextStyle(x => x
+                .FontColor(Colors.Grey.Darken4)
+                .FontSize(18)
+                .SemiBold())
+            .AlignCenter();
+    }
+
+    private static IContainer CellStyleRow(IContainer container, int index)
+    {
+        var backgroundColor = index % 2 == 0
+            ? Colors.Grey.Lighten4
+            : Colors.White;
+
+        return container
+            .Background(backgroundColor)
+            .PaddingVertical(8)
+            .PaddingHorizontal(16)
+            .DefaultTextStyle(x => x
+                .FontSize(14)
+                .FontColor(Colors.Grey.Darken2));
+    }
+
+
 }
