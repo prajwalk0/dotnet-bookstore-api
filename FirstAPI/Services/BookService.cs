@@ -8,6 +8,50 @@ namespace FirstAPI.Services
 {
     public class BookService : IBookService
     {
+        /*making list static ---> because this way the list will be created once when 
+        the controller is first instantiated and then on each upcoming HTTP request we
+        will use the same list. So basically if we add sth to our list or modify sth 
+        delete sth, these changes will be saved for all the upcoming API requests.*/
+
+        /*static private List<Book> books = new List<Book>    // if we remove static keyword this list would be created each time we made a new http request and we would lose every modification.
+        
+        {
+            new Book
+            {
+                Id=1,
+                Title = "The Great Gatsby",
+                Author = "F. Scott Fitzgerald",
+                YearPublished = 1925
+            },
+            new Book
+            {
+                Id = 2,
+                Title = "To Kill a Mockingbird",
+                Author = "Harper Lee",
+                YearPublished= 1960
+            },
+            new Book
+            {
+                Id = 3,
+                Title = "1984",
+                Author = "George Orwell",
+                YearPublished=1949
+            },
+            new Book
+            {
+                Id = 4,
+                Title = "Pride and Prejudice",
+                Author = "Jane Austen",
+                YearPublished = 1813
+            },
+            new Book
+            {
+                Id = 5,
+                Title="Mobi-Dick",
+                Author="Herman Melville",
+                YearPublished=1851
+           }
+        };*/
         private readonly FirstAPIContext _context;
         public BookService(FirstAPIContext context)
         {
@@ -53,6 +97,61 @@ namespace FirstAPI.Services
                 Author = x.Author,
                 YearPublished = x.YearPublished
             }).ToListAsync(); 
+        }
+
+        public async Task<PagedResultDto<BookDto>> GetAllBooksSPAsync(QueryObject query)
+        {
+            var books = await _context.Books
+                .FromSqlRaw("EXEC Sp_GetBooks")
+                .AsNoTracking()
+                .ToListAsync();
+
+            // ===== SORTING =====
+            if (!string.IsNullOrWhiteSpace(query.SortBy))
+            {
+                books = query.SortBy.ToLower() switch
+                {
+                    "author" => query.IsDescending
+                        ? books.OrderByDescending(b => b.Author).ToList()
+                        : books.OrderBy(b => b.Author).ToList(),
+
+                    "title" => query.IsDescending
+                        ? books.OrderByDescending(b => b.Title).ToList()
+                        : books.OrderBy(b => b.Title).ToList(),
+
+                    "yearpublished" => query.IsDescending
+                        ? books.OrderByDescending(b => b.YearPublished).ToList()
+                        : books.OrderBy(b => b.YearPublished).ToList(),
+
+                    _ => books
+                };
+            }
+
+            var totalCount = books.Count;
+
+            // ===== PAGINATION =====
+            var pagedBooks = books
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToList();
+
+            // ===== MAP ENTITY → DTO =====
+            var dtoList = pagedBooks.Select(b => new BookDto
+            {
+                Id = b.Id,
+                Title = b.Title,
+                Author = b.Author,
+                YearPublished = b.YearPublished
+            }).ToList();
+
+            return new PagedResultDto<BookDto>
+            {
+                TotalCount = totalCount,
+                PageSize = query.PageSize,
+                CurrentPage = query.PageNumber,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize),
+                Items = dtoList
+            };
         }
 
         public async Task<BookDto?> GetBookByIdAsync(int id)

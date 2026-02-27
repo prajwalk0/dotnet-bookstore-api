@@ -10,51 +10,6 @@ namespace FirstAPI.Controllers
     [ApiController]
     public class BooksController : ControllerBase
     {
-        /*making list static ---> because this way the list will be created once when 
-        the controller is first instantiated and then on each upcoming HTTP request we
-        will use the same list. So basically if we add sth to our list or modify sth 
-        delete sth, these changes will be saved for all the upcoming API requests.*/
-
-        //static private List<Book> books = new List<Book>    // if we remove static keyword this list would be created each time we made a new http request and we would lose every modification.
-        //{
-        //    new Book
-        //    {
-        //        Id=1,
-        //        Title = "The Great Gatsby",
-        //        Author = "F. Scott Fitzgerald",
-        //        YearPublished = 1925
-        //    },
-        //    new Book
-        //    {
-        //        Id = 2,
-        //        Title = "To Kill a Mockingbird",
-        //        Author = "Harper Lee",
-        //        YearPublished= 1960
-        //    },
-        //    new Book
-        //    {
-        //        Id = 3,
-        //        Title = "1984",
-        //        Author = "George Orwell",
-        //        YearPublished=1949
-        //    },
-        //    new Book
-        //    {
-        //        Id = 4,
-        //        Title = "Pride and Prejudice",
-        //        Author = "Jane Austen",
-        //        YearPublished = 1813
-        //    },
-        //    new Book
-        //    {
-        //        Id = 5,
-        //        Title="Mobi-Dick",
-        //        Author="Herman Melville",
-        //        YearPublished=1851
-        //    }
-        //};
-
-
         // we are injecting FirstAPIContext into our controller through its constructor
         private readonly IBookService _service;
         private readonly IExportService _exportService;
@@ -72,44 +27,14 @@ namespace FirstAPI.Controllers
             return Ok(await _service.GetAllBooksAsync());
         }
 
-        /*[HttpGet]
+        [HttpGet]
         [Route("getall")]
-        public async Task<ActionResult<List<Book>>> GetAllBooksSP([FromQuery] QueryObject query)   // -----> here show this by calling database stored procedure
+        public async Task<ActionResult<PagedResultDto<BookDto>>> GetAllBooksSP([FromQuery] QueryObject query)
         {
-            var books = await _context.Books.FromSqlRaw("Sp_GetBooks").ToListAsync();
-            //books = books.OrderBy(b => b.YearPublished).ToList();
-            if (query.SortBy != null)
-            {
-                if (query.SortBy.ToLower() == "author")
-                {
-                    books = query.IsDescending ? books.OrderByDescending(b => b.Author).ToList() : books.OrderBy(b => b.Author).ToList();
-                }
-                else if (query.SortBy.ToLower() == "title")
-                {
-                    books = query.IsDescending ? books.OrderByDescending(b => b.Title).ToList() : books.OrderBy(b => b.Title).ToList();
-                }
-                else if (query.SortBy.ToLower() == "yearpublished")
-                {
-                    books = query.IsDescending ? books.OrderByDescending(b => b.YearPublished).ToList() : books.OrderBy(b => b.YearPublished).ToList();
-                }
-            }
+            var result = await _service.GetAllBooksSPAsync(query);
+            return Ok(result);
+        }
 
-            var skipNumber = (query.PageNumber - 1) * query.PageSize;
-            var pagedBooks = books.Skip(skipNumber).Take(query.PageSize).ToList();
-
-            var pagedResponse = new
-            {
-                TotalCount = books.Count,
-                PageSize = query.PageSize,
-                CurrentPage = query.PageNumber,
-                TotalPages = (int)Math.Ceiling(books.Count / (double)query.PageSize),
-                Books = pagedBooks
-            };
-
-            return Ok(pagedResponse);
-
-        }*/
-        
 
 
         [HttpGet("ExportExcel")]
@@ -131,26 +56,6 @@ namespace FirstAPI.Controllers
             var pdf = await _exportService.ExportToPdfAsync();
             return File(pdf, "application/pdf", "Books.pdf");
         }
-
-
-
-
-        /*[HttpGet("{page}")]
-        public async Task<ActionResult<List<Book>>> GetBooks(int page)
-        {
-            if (_context.Books==null)
-                return NotFound();
-
-            var pageResults = 4f;  // we get 3 items on one page
-            var pageCount = Math.Ceiling(_context.Books.Count() / pageResults); // we calculate how many pages we have
-            var books=await _context.Books
-                .Skip((page - 1) * (int)pageResults) // we skip the items of the prteevious pages
-                .Take((int)pageResults)  // we take only the items of the current page
-                .ToListAsync();
-            books= books.OrderBy(b => b.Author).ToList(); // we order the books by author
-
-            return Ok(books);
-        }*/
 
         // this http get method again for when user is requesting one specific resources
         [HttpGet("{id}")]
