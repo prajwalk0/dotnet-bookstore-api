@@ -1,4 +1,5 @@
 using FirstAPI.Data;
+using FirstAPI.Services;
 using FirstAPI.Validation;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -13,7 +14,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 //builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<BookValidator>();
